@@ -71,15 +71,13 @@ Or apply only the extra SQL file in Neon SQL Editor: `database/postgres/document
 
 ---
 
-## 3. Frontend API URL
+## Frontend API URL (important)
 
-Leave `REACT_APP_API_URL` unset (or empty) so the app uses relative `/api` on [https://hrsystem-ochre.vercel.app/](https://hrsystem-ochre.vercel.app/).
+**Do not** set `REACT_APP_API_URL` to your Neon `DATABASE_URL`. That causes `Unsupported protocol postgresql:` on login.
 
-Only set `REACT_APP_API_URL` if you later split the API onto a different host.
+For same-origin deploy (`hrsystem-ochre.vercel.app`), leave `REACT_APP_API_URL` **unset** so the app uses `/api`.
 
-**Vercel project settings**
-- Root Directory: empty / `.` (repo root with `vercel.json`)
-- Not `frontend/` alone (that skips the API function)
+If you previously set it incorrectly, delete that env var and redeploy.
 
 ---
 

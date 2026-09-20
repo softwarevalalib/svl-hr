@@ -1,4 +1,3 @@
-const { Pool } = require('pg');
 const path = require('path');
 
 /** Neon schema uses quoted PascalCase table names; SQLite-style SQL leaves them unquoted. */
@@ -98,10 +97,26 @@ function normalizeSql(sql) {
 }
 
 function createPgDb(connectionString) {
+  // Prefer Neon serverless driver on Vercel (TCP pg often fails in serverless)
+  let Pool;
+  const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+  if (isServerless) {
+    try {
+      const neon = require('@neondatabase/serverless');
+      const ws = require('ws');
+      neon.neonConfig.webSocketConstructor = ws;
+      Pool = neon.Pool;
+    } catch (e) {
+      Pool = require('pg').Pool;
+    }
+  } else {
+    Pool = require('pg').Pool;
+  }
+
   const pool = new Pool({
     connectionString,
     ssl: connectionString.includes('localhost') ? false : { rejectUnauthorized: false },
-    max: 10,
+    max: isServerless ? 1 : 10,
   });
 
   const db = {
@@ -178,9 +193,17 @@ function createSqliteDb(dbPath) {
   return raw;
 }
 
+function normalizeDatabaseUrl(raw) {
+  if (!raw) return '';
+  let url = String(raw).trim().replace(/^["']+|["']+$/g, '');
+  // Common paste mistakes
+  url = url.replace(/^DATABASE_URL=/i, '');
+  return url;
+}
+
 function createDatabase() {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (databaseUrl && databaseUrl.startsWith('postgres')) {
+  const databaseUrl = normalizeDatabaseUrl(process.env.DATABASE_URL);
+  if (databaseUrl && /^postgres(ql)?:\/\//i.test(databaseUrl)) {
     console.log('✅ Using Neon/PostgreSQL (DATABASE_URL)');
     return createPgDb(databaseUrl);
   }
