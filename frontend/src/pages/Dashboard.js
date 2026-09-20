@@ -54,20 +54,23 @@ const Dashboard = () => {
         if (activitiesRes.data.success) setRecentActivities(activitiesRes.data.data);
       }
 
-      if (hasPermission(['attendance.self', 'attendance.manage'])) {
+      if (user?.employee_id && hasPermission(['attendance.self', 'attendance.manage'])) {
         const [todayRes, myRes] = await Promise.all([
           api.get('/attendance/today'),
           api.get('/attendance/my'),
         ]);
         if (todayRes.data.success) setTodayAttendance(todayRes.data.data);
         if (myRes.data.success) setMyAttendance((myRes.data.data || []).slice(0, 5));
+      } else {
+        setTodayAttendance(null);
+        setMyAttendance([]);
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
       setLoading(false);
     }
-  }, [isOrgDashboard, hasPermission]);
+  }, [isOrgDashboard, hasPermission, user?.employee_id]);
 
   useEffect(() => {
     loadDashboardData();

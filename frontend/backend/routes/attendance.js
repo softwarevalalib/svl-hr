@@ -54,8 +54,9 @@ function computeStatus(schedule, inTime, outTime) {
 router.get('/my', requireAnyPermission('attendance.self', 'attendance.view', 'attendance.manage'), (req, res) => {
     const db = req.app.get('db');
     const employeeId = req.user.employee_id;
+    // Admin / system users often have no employee profile — return empty, not 400.
     if (!employeeId) {
-        return res.status(400).json({ success: false, message: 'No employee profile linked to this user' });
+        return res.json({ success: true, data: [] });
     }
     db.all(
         `SELECT a.*, e.first_name || ' ' || e.last_name as employee_name
