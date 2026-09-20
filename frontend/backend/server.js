@@ -51,11 +51,13 @@ const db = createDatabase();
 app.set('db', db);
 
 app.get('/api/health', (req, res) => {
+  const nodeEnv = process.env.NODE_ENV || 'development';
+  const safeEnv = ['development', 'production', 'test'].includes(nodeEnv) ? nodeEnv : 'production';
   res.json({
     status: 'OK',
     message: 'SVL Human Resource Management API is running',
     database: process.env.DATABASE_URL ? 'Neon/PostgreSQL' : 'SQLite',
-    env: process.env.NODE_ENV || 'development',
+    env: safeEnv,
   });
 });
 
