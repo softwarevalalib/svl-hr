@@ -4,26 +4,24 @@ const router = express.Router();
 // Get all departments
 router.get('/', (req, res) => {
     const db = req.app.get('db');
-    
+
     db.all(
-        `SELECT d.*, 
+        `SELECT d.*,
                 m.first_name || ' ' || m.last_name as manager_name,
-                COUNT(e.id) as employee_count
+                (SELECT COUNT(*) FROM Employees e WHERE e.department = d.name) as employee_count
          FROM Departments d
          LEFT JOIN Employees m ON d.manager_id = m.id
-         LEFT JOIN Employees e ON e.department = d.name
-         GROUP BY d.id
          ORDER BY d.name`,
         [],
         (err, departments) => {
             if (err) {
                 console.error('Database error:', err);
-                return res.status(500).json({ 
-                    success: false, 
-                    message: 'Error fetching departments' 
+                return res.status(500).json({
+                    success: false,
+                    message: err.message || 'Error fetching departments',
                 });
             }
-            
+
             res.json({ success: true, data: departments });
         }
     );
@@ -33,7 +31,7 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
     const db = req.app.get('db');
     const deptId = req.params.id;
-    
+
     db.get(
         `SELECT * FROM Departments WHERE id = ?`,
         [deptId],
@@ -50,4 +48,3 @@ router.get('/:id', (req, res) => {
 });
 
 module.exports = router;
-
