@@ -208,7 +208,7 @@ function createDatabase() {
     return createPgDb(databaseUrl);
   }
 
-  const dbPath = process.env.SQLITE_PATH || path.join(__dirname, '../../database/hr_system.db');
+  const dbPath = process.env.SQLITE_PATH || path.join(__dirname, '../../../database/hr_system.db');
   console.log('✅ Using SQLite database:', dbPath);
   return createSqliteDb(dbPath);
 }

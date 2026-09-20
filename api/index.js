@@ -1,2 +1,2 @@
 // Vercel serverless entry — Express API at /api/*
-module.exports = require('../backend/server');
+module.exports = require('../frontend/backend/server');

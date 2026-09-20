@@ -5,7 +5,7 @@ const fs = require('fs');
 const router = express.Router();
 const { authenticate, requireAnyPermission, requirePermission } = require('../middleware/auth');
 
-const uploadDir = path.join(__dirname, '../../uploads');
+const uploadDir = path.join(__dirname, '../../../uploads');
 if (!fs.existsSync(uploadDir)) {
   try {
     fs.mkdirSync(uploadDir, { recursive: true });

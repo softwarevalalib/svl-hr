@@ -2,8 +2,8 @@ const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs');
 const path = require('path');
 
-const dbPath = path.join(__dirname, '../../database/hr_system.db');
-const migrationsDir = path.join(__dirname, '../../database/migrations');
+const dbPath = path.join(__dirname, '../../../database/hr_system.db');
+const migrationsDir = path.join(__dirname, '../../../database/migrations');
 
 const { runAlterMigrations } = require('./alterAttendanceColumns');
 

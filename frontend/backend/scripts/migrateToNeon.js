@@ -23,9 +23,9 @@ async function main() {
   await client.connect();
   console.log('Connected to Postgres');
 
-  const schemaPath = path.join(__dirname, '../../database/postgres/schema.sql');
-  const seedPath = path.join(__dirname, '../../database/postgres/seed.sql');
-  const docsPath = path.join(__dirname, '../../database/postgres/documents_notifications.sql');
+  const schemaPath = path.join(__dirname, '../../../database/postgres/schema.sql');
+  const seedPath = path.join(__dirname, '../../../database/postgres/seed.sql');
+  const docsPath = path.join(__dirname, '../../../database/postgres/documents_notifications.sql');
 
   const schema = fs.readFileSync(schemaPath, 'utf8');
   const seed = fs.readFileSync(seedPath, 'utf8');

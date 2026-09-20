@@ -19,7 +19,7 @@ Project: **svl-hrm**
 Region: `aws-us-east-1`
 
 ```bash
-cd hr_system_react/backend
+cd hr_system_react/frontend/backend
 cp .env.example .env
 # Paste DATABASE_URL from Neon console → Connection string (pooled)
 npm install
@@ -64,7 +64,7 @@ Health check: [https://hrsystem-ochre.vercel.app/api/health](https://hrsystem-oc
 After updating schema (documents/notifications), re-run:
 
 ```bash
-cd backend && npm run migrate:neon
+cd frontend/backend && npm run migrate:neon
 ```
 
 Or apply only the extra SQL file in Neon SQL Editor: `database/postgres/documents_notifications.sql`.
@@ -87,14 +87,14 @@ If you previously set it incorrectly, delete that env var and redeploy.
 Unset `DATABASE_URL`, run:
 
 ```bash
-cd backend && npm start
+cd frontend/backend && npm start
 cd frontend && npm start   # proxies /api → localhost:3001
 ```
 
 **Option B — Neon locally**
 
 ```bash
-cd backend
+cd frontend/backend
 # .env contains DATABASE_URL
 npm start
 ```

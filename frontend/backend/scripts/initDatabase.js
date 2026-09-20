@@ -2,8 +2,8 @@ const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs');
 const path = require('path');
 
-const dbPath = path.join(__dirname, '../../database/hr_system.db');
-const sqlPath = path.join(__dirname, '../../database/init.sql');
+const dbPath = path.join(__dirname, '../../../database/hr_system.db');
+const sqlPath = path.join(__dirname, '../../../database/init.sql');
 
 // Remove existing database
 if (fs.existsSync(dbPath)) {
@@ -70,7 +70,7 @@ const runMigrations = (files, index = 0) => {
         return;
     }
 
-    const migrationPath = path.join(__dirname, '../../database/migrations', files[index]);
+    const migrationPath = path.join(__dirname, '../../../database/migrations', files[index]);
     if (!fs.existsSync(migrationPath)) {
         console.warn(`⚠️  Skipping missing migration: ${files[index]}`);
         runMigrations(files, index + 1);

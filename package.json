@@ -4,7 +4,9 @@
   "description": "SVL HRM — frontend + API on one Vercel project",
   "scripts": {
     "build": "npm run build --prefix frontend",
-    "start:api": "npm start --prefix backend",
-    "start:web": "npm start --prefix frontend"
+    "start:api": "npm start --prefix frontend/backend",
+    "start:web": "npm start --prefix frontend",
+    "migrate": "npm run migrate --prefix frontend/backend",
+    "migrate:neon": "npm run migrate:neon --prefix frontend/backend"
   }
 }

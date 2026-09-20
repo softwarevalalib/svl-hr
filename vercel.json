@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "installCommand": "npm install --prefix frontend && npm install --prefix backend",
+  "installCommand": "npm install --prefix frontend && npm install --prefix frontend/backend",
   "builds": [
     {
       "src": "api/index.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["backend/**"]
+        "includeFiles": ["frontend/backend/**"]
       }
     },
     {
