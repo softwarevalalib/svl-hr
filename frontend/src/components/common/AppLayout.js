@@ -22,11 +22,13 @@ import {
   SafetyCertificateOutlined,
   ScheduleOutlined,
   UsergroupAddOutlined,
+  PictureOutlined,
   FolderOutlined,
   BellOutlined,
   CheckOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../context/AuthContext';
+import { useBranding } from '../../context/BrandingContext';
 import { api } from '../../services/authService';
 
 const { Header, Sider, Content } = Layout;
@@ -41,6 +43,7 @@ const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, hasPermission, primaryRole } = useAuth();
+  const { company_name, logoUrl } = useBranding();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -152,6 +155,7 @@ const AppLayout = () => {
           item('/users', <UsergroupAddOutlined />, 'Users', 'users.manage'),
           item('/roles', <SafetyCertificateOutlined />, 'Roles', 'roles.manage'),
           item('/settings/work-schedule', <ScheduleOutlined />, 'Work Schedule', 'settings.manage'),
+          item('/settings/branding', <PictureOutlined />, 'Branding', 'settings.manage'),
         ].filter(Boolean),
       },
     ];
@@ -236,7 +240,10 @@ const AppLayout = () => {
   const siderContent = (
     <>
       <div className="app-sider-brand">
-        <span className="app-sider-brand-mark">{collapsed && !isMobile ? 'SVL' : 'SVL HRM'}</span>
+        <img src={logoUrl} alt={company_name} className="app-sider-logo" />
+        {(!collapsed || isMobile) && (
+          <span className="app-sider-brand-mark">{company_name}</span>
+        )}
       </div>
       <Menu
         className="app-sider-menu"

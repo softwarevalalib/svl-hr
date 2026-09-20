@@ -192,11 +192,22 @@ code {
 }
 
 .app-sider-brand {
-  height: 64px;
+  min-height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
+  padding: 10px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.app-sider-logo {
+  height: 32px;
+  width: 32px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  flex-shrink: 0;
 }
 
 .app-sider-brand-mark {
@@ -204,7 +215,12 @@ code {
   font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
   font-weight: 700;
   letter-spacing: 0.04em;
-  font-size: 18px;
+  font-size: 15px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 150px;
 }
 
 .app-sider-menu {
@@ -378,9 +394,9 @@ code {
   align-items: center;
   min-height: 100vh;
   padding: 16px;
-  background:
-    radial-gradient(circle at top left, rgba(31, 111, 139, 0.18), transparent 40%),
-    linear-gradient(160deg, #0f1c2e 0%, #1a3348 55%, #24566b 100%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .login-card {
@@ -388,14 +404,60 @@ code {
   max-width: 400px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
   border-radius: 12px;
+  backdrop-filter: blur(2px);
+}
+
+.login-brand-block {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.login-logo {
+  height: 64px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+  margin-bottom: 12px;
 }
 
 .login-brand {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 700;
   margin: 0;
   color: #0f1c2e;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
+}
+
+.login-subtitle {
+  color: #5c6b7a;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+.dashboard-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.dashboard-logo {
+  height: 40px;
+  width: auto;
+  max-width: 120px;
+  object-fit: contain;
+}
+
+.branding-preview-logo,
+.branding-preview-bg {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  background: #f8fafc;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @media (max-width: 768px) {

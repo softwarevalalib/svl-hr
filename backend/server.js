@@ -44,8 +44,8 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '12mb' }));
+app.use(express.urlencoded({ extended: true, limit: '12mb' }));
 
 const db = createDatabase();
 app.set('db', db);
@@ -61,8 +61,32 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 
+// Public branding for login page (no auth)
+app.get('/api/branding', (req, res) => {
+  const db = req.app.get('db');
+  db.all(
+    `SELECT name, value FROM Settings WHERE name IN ('company_logo', 'login_background', 'company_name')`,
+    [],
+    (err, rows) => {
+      if (err) return res.status(500).json({ success: false, message: err.message });
+      const map = {};
+      (rows || []).forEach((r) => {
+        map[r.name] = r.value;
+      });
+      res.json({
+        success: true,
+        data: {
+          company_name: map.company_name || 'SVL HRM',
+          company_logo: map.company_logo || null,
+          login_background: map.login_background || null,
+        },
+      });
+    }
+  );
+});
+
 app.use('/api', (req, res, next) => {
-  if (req.path === '/health' || req.path.startsWith('/auth')) {
+  if (req.path === '/health' || req.path.startsWith('/auth') || req.path === '/branding') {
     return next();
   }
   return authenticate(req, res, next);

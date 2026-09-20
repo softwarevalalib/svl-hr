@@ -23,10 +23,13 @@ import AppLayout from './components/common/AppLayout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import PermissionRoute from './components/common/PermissionRoute';
 import { AuthProvider } from './context/AuthContext';
+import { BrandingProvider } from './context/BrandingContext';
+import BrandingSettings from './pages/BrandingSettings';
 
 function App() {
   return (
     <AuthProvider>
+      <BrandingProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
 
@@ -57,8 +60,10 @@ function App() {
           <Route path="users" element={<PermissionRoute permission="users.manage"><Users /></PermissionRoute>} />
           <Route path="roles" element={<PermissionRoute permission="roles.manage"><Roles /></PermissionRoute>} />
           <Route path="settings/work-schedule" element={<PermissionRoute permission="settings.manage"><WorkSchedule /></PermissionRoute>} />
+          <Route path="settings/branding" element={<PermissionRoute permission="settings.manage"><BrandingSettings /></PermissionRoute>} />
         </Route>
       </Routes>
+      </BrandingProvider>
     </AuthProvider>
   );
 }

@@ -17,11 +17,13 @@ import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { api } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
+import { useBranding } from '../context/BrandingContext';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 const Dashboard = () => {
   const { user, hasPermission, primaryRole } = useAuth();
+  const { company_name, logoUrl } = useBranding();
   const navigate = useNavigate();
   const isOrgDashboard = hasPermission(['employees.view', 'employees.manage', 'analytics.view']);
 
@@ -187,7 +189,10 @@ const Dashboard = () => {
   if (!isOrgDashboard) {
     return (
       <div style={{ padding: '0 8px' }}>
-        <h1 style={{ marginBottom: 24, fontSize: 28, fontWeight: 600 }}>My Dashboard</h1>
+        <div className="dashboard-brand-row">
+          <img src={logoUrl} alt={company_name} className="dashboard-logo" />
+          <h1 style={{ marginBottom: 0, fontSize: 28, fontWeight: 600 }}>My Dashboard</h1>
+        </div>
         {personalClock}
         <Row gutter={[16, 16]}>
           <Col xs={24} md={12}>
@@ -229,8 +234,11 @@ const Dashboard = () => {
 
   return (
     <div style={{ padding: '0 8px' }}>
-      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-        <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 600 }}>Dashboard</h1>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+        <div className="dashboard-brand-row" style={{ marginBottom: 0 }}>
+          <img src={logoUrl} alt={company_name} className="dashboard-logo" />
+          <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 600 }}>Dashboard</h1>
+        </div>
         <Tag color="blue" style={{ padding: '4px 12px', fontSize: '14px' }}>
           Last updated: {dayjs().format('HH:mm:ss')}
         </Tag>
