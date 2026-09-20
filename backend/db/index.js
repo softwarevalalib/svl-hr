@@ -1,5 +1,4 @@
 const { Pool } = require('pg');
-const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
 /** Neon schema uses quoted PascalCase table names; SQLite-style SQL leaves them unquoted. */
@@ -171,6 +170,8 @@ function createPgDb(connectionString) {
 }
 
 function createSqliteDb(dbPath) {
+  // Lazy-load so Vercel/Neon deploys do not need native sqlite3
+  const sqlite3 = require('sqlite3').verbose();
   const raw = new sqlite3.Database(dbPath);
   raw.run('PRAGMA foreign_keys = ON');
   raw.driver = 'sqlite';

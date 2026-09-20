@@ -1,14 +1,15 @@
-# Deployment Guide — Vercel (frontend) + Neon (database) + Vercel (API)
+# Deployment Guide — Vercel (frontend + API) + Neon (database)
 
 ## Architecture
 
 | Layer | Platform | Notes |
 |-------|----------|--------|
-| Frontend | **Vercel** | CRA React app (`frontend/`) |
-| API | **Vercel** (Node serverless) | Express app (`backend/`) — Neon does not host Express |
+| Frontend + API | **Vercel** (one project) | Live: [https://hrsystem-ochre.vercel.app/](https://hrsystem-ochre.vercel.app/) |
 | Database | **Neon Postgres** | Project `svl-hrm` (`winter-cloud-48935640`) |
 
-Neon provides PostgreSQL. The Node API is deployed as a Vercel serverless function that connects to Neon via `DATABASE_URL`.
+Same origin: React SPA + Express `/api/*` on one deployment (`vercel.json` at repo root).
+
+Neon provides PostgreSQL. The Node API runs as a Vercel serverless function (`api/index.js`) connected via `DATABASE_URL`.
 
 ---
 
@@ -33,10 +34,12 @@ Use the **pooled** connection string (`-pooler` host) for serverless.
 
 ---
 
-## 2. Deploy backend API to Vercel
+## 2. Deploy to Vercel (frontend + API together)
+
+**Root Directory:** repository root (where `vercel.json` and `api/` live) — not `frontend/` alone.
 
 ```bash
-cd hr_system_react/backend
+cd hr_system_react
 npx vercel
 ```
 
@@ -45,14 +48,18 @@ In the Vercel project **Settings → Environment Variables**, set:
 | Name | Value |
 |------|--------|
 | `DATABASE_URL` | Neon pooled connection string |
-| `JWT_SECRET` | Long random secret |
-| `CORS_ORIGINS` | `https://your-frontend.vercel.app` |
+| `JWT_SECRET` | Long random secret (same as local if you want shared sessions) |
+| `CORS_ORIGINS` | `https://hrsystem-ochre.vercel.app,http://localhost:3000,http://localhost:3002` |
 | `NODE_ENV` | `production` |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` | Optional — enables email notifications |
 
+`REACT_APP_API_URL` is **not required** when using the same host (frontend calls `/api/...`).
+
 Redeploy after setting env vars.
 
-Health check: `https://your-api.vercel.app/api/health`
+Health check: [https://hrsystem-ochre.vercel.app/api/health](https://hrsystem-ochre.vercel.app/api/health)
+
+**Live app:** [https://hrsystem-ochre.vercel.app/](https://hrsystem-ochre.vercel.app/)
 
 After updating schema (documents/notifications), re-run:
 

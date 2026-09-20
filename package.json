@@ -1,0 +1,10 @@
+{
+  "name": "svl-hr",
+  "private": true,
+  "description": "SVL HRM — frontend + API on one Vercel project",
+  "scripts": {
+    "build": "npm run build --prefix frontend",
+    "start:api": "npm start --prefix backend",
+    "start:web": "npm start --prefix frontend"
+  }
+}
