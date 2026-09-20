@@ -1,4 +1,4 @@
-// Temporary diagnostic + robust Express loader for Vercel
+// Vercel serverless entry — Express API for /api/*
 const hasDbUrl = !!(process.env.DATABASE_URL && String(process.env.DATABASE_URL).trim());
 
 function sendJson(res, status, body) {
