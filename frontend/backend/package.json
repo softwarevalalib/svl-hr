@@ -31,10 +31,12 @@
     "nodemailer": "^10.0.10",
     "pdfkit": "^0.17.1",
     "pg": "^8.23.0",
-    "sqlite3": "^5.1.6",
     "ws": "^8.21.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
+  },
+  "optionalDependencies": {
+    "sqlite3": "^5.1.6"
   }
 }
