@@ -71,22 +71,15 @@ Or apply only the extra SQL file in Neon SQL Editor: `database/postgres/document
 
 ---
 
-## 3. Deploy frontend to Vercel
+## 3. Frontend API URL
 
-```bash
-cd hr_system_react/frontend
-npx vercel
-```
+Leave `REACT_APP_API_URL` unset (or empty) so the app uses relative `/api` on [https://hrsystem-ochre.vercel.app/](https://hrsystem-ochre.vercel.app/).
 
-Environment variables:
+Only set `REACT_APP_API_URL` if you later split the API onto a different host.
 
-| Name | Value |
-|------|--------|
-| `REACT_APP_API_URL` | `https://your-api.vercel.app/api` |
-
-**Important:** CRA bakes `REACT_APP_*` in at build time. Set the variable before the production build / redeploy after changing it.
-
-Root directory in Vercel UI: `frontend` (if importing the monorepo), or deploy from `frontend/` alone.
+**Vercel project settings**
+- Root Directory: empty / `.` (repo root with `vercel.json`)
+- Not `frontend/` alone (that skips the API function)
 
 ---
 
