@@ -48,10 +48,19 @@ In the Vercel project **Settings → Environment Variables**, set:
 | `JWT_SECRET` | Long random secret |
 | `CORS_ORIGINS` | `https://your-frontend.vercel.app` |
 | `NODE_ENV` | `production` |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` | Optional — enables email notifications |
 
 Redeploy after setting env vars.
 
 Health check: `https://your-api.vercel.app/api/health`
+
+After updating schema (documents/notifications), re-run:
+
+```bash
+cd backend && npm run migrate:neon
+```
+
+Or apply only the extra SQL file in Neon SQL Editor: `database/postgres/documents_notifications.sql`.
 
 ---
 

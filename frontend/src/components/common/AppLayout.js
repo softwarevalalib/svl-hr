@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { Layout, Menu, Avatar, Dropdown, Drawer, Tag } from 'antd';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { Layout, Menu, Avatar, Dropdown, Drawer, Tag, Badge, Button, Empty, message } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   DashboardOutlined,
@@ -22,8 +22,12 @@ import {
   SafetyCertificateOutlined,
   ScheduleOutlined,
   UsergroupAddOutlined,
+  FolderOutlined,
+  BellOutlined,
+  CheckOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../context/AuthContext';
+import { api } from '../../services/authService';
 
 const { Header, Sider, Content } = Layout;
 
@@ -31,9 +35,12 @@ const AppLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, hasPermission, primaryRole, permissions } = useAuth();
+  const { user, logout, hasPermission, primaryRole } = useAuth();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -49,6 +56,43 @@ const AppLayout = () => {
   useEffect(() => {
     if (isMobile) setDrawerOpen(false);
   }, [location.pathname, isMobile]);
+
+  const loadNotifications = useCallback(async () => {
+    try {
+      const [listRes, countRes] = await Promise.all([
+        api.get('/notifications'),
+        api.get('/notifications/unread-count'),
+      ]);
+      if (listRes.data.success) setNotifications(listRes.data.data || []);
+      if (countRes.data.success) setUnreadCount(countRes.data.count || 0);
+    } catch (e) {
+      /* table may not exist yet */
+    }
+  }, []);
+
+  useEffect(() => {
+    loadNotifications();
+    const t = setInterval(loadNotifications, 60000);
+    return () => clearInterval(t);
+  }, [loadNotifications]);
+
+  const markRead = async (id) => {
+    try {
+      await api.put(`/notifications/${id}/read`);
+      loadNotifications();
+    } catch (e) {
+      message.error('Could not update notification');
+    }
+  };
+
+  const markAllRead = async () => {
+    try {
+      await api.put('/notifications/read-all');
+      loadNotifications();
+    } catch (e) {
+      message.error('Could not update notifications');
+    }
+  };
 
   const menuItems = useMemo(() => {
     const item = (key, icon, label, perm) => {
@@ -71,6 +115,7 @@ const AppLayout = () => {
           item('/employees', <TeamOutlined />, 'Employees', ['employees.view', 'employees.manage']),
           item('/attendance', <ClockCircleOutlined />, 'Attendance', ['attendance.view', 'attendance.manage', 'attendance.self']),
           item('/leave', <CalendarOutlined />, 'Leave', ['leave.view', 'leave.manage', 'leave.self']),
+          item('/documents', <FolderOutlined />, 'Documents', ['documents.view', 'documents.manage', 'employees.view']),
           item('/training', <BookOutlined />, 'Training', ['training.view', 'training.manage']),
           item('/performance', <TrophyOutlined />, 'Performance', ['performance.view', 'performance.manage']),
         ].filter(Boolean),
@@ -112,7 +157,7 @@ const AppLayout = () => {
     ];
 
     return groups.filter((g) => g.children && g.children.length > 0);
-  }, [hasPermission, collapsed, permissions]);
+  }, [hasPermission, collapsed]);
 
   const handleMenuClick = ({ key }) => {
     navigate(key);
@@ -143,6 +188,50 @@ const AppLayout = () => {
       onClick: handleLogout,
     },
   ];
+
+  const notifMenu = {
+    items: [
+      {
+        key: 'header',
+        label: (
+          <div className="notif-header">
+            <span>Notifications</span>
+            {unreadCount > 0 && (
+              <Button type="link" size="small" icon={<CheckOutlined />} onClick={markAllRead}>
+                Mark all read
+              </Button>
+            )}
+          </div>
+        ),
+        disabled: true,
+      },
+      { type: 'divider' },
+      ...(notifications.length
+        ? notifications.slice(0, 12).map((n) => ({
+            key: String(n.id),
+            label: (
+              <div
+                className={`notif-item ${n.status === 'Unread' ? 'notif-unread' : ''}`}
+                onClick={() => {
+                  if (n.status === 'Unread') markRead(n.id);
+                  if (n.link) navigate(n.link);
+                  setNotifOpen(false);
+                }}
+              >
+                <div className="notif-title">{n.title}</div>
+                {n.message && <div className="notif-msg">{n.message}</div>}
+              </div>
+            ),
+          }))
+        : [
+            {
+              key: 'empty',
+              label: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No notifications" />,
+              disabled: true,
+            },
+          ]),
+    ],
+  };
 
   const siderContent = (
     <>
@@ -181,9 +270,8 @@ const AppLayout = () => {
           placement="left"
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
-          width={260}
-          bodyStyle={{ padding: 0, background: '#0f1c2e' }}
-          headerStyle={{ display: 'none' }}
+          width={Math.min(280, typeof window !== 'undefined' ? window.innerWidth - 40 : 280)}
+          styles={{ body: { padding: 0, background: '#0f1c2e' }, header: { display: 'none' } }}
         >
           <div className="app-sider app-sider-drawer">{siderContent}</div>
         </Drawer>
@@ -201,7 +289,21 @@ const AppLayout = () => {
           </button>
 
           <div className="app-header-right">
-            <Tag className="app-role-chip">{primaryRole}</Tag>
+            <Dropdown
+              menu={notifMenu}
+              trigger={['click']}
+              open={notifOpen}
+              onOpenChange={setNotifOpen}
+              placement="bottomRight"
+              overlayClassName="notif-dropdown"
+            >
+              <button type="button" className="app-notif-btn" aria-label="Notifications">
+                <Badge count={unreadCount} size="small" overflowCount={99}>
+                  <BellOutlined style={{ fontSize: 18 }} />
+                </Badge>
+              </button>
+            </Dropdown>
+            {!isMobile && <Tag className="app-role-chip">{primaryRole}</Tag>}
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
               <button type="button" className="app-user-chip">
                 <Avatar size="small" icon={<UserOutlined />} />

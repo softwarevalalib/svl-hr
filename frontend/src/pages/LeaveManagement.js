@@ -1,19 +1,22 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Card, Table, Button, Modal, Form, Input, Select, DatePicker, Tag, message, Space, Statistic, Row, Col, Tabs } from 'antd';
-import { PlusOutlined, CalendarOutlined, CheckCircleOutlined, CloseCircleOutlined, FilePdfOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import {
+  Card, Table, Button, Modal, Form, Input, Select, DatePicker, Tag, message, Space, Statistic, Row, Col, Tabs, Popconfirm,
+} from 'antd';
+import {
+  PlusOutlined, CalendarOutlined, CheckCircleOutlined, CloseCircleOutlined, FilePdfOutlined,
+} from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { employeeService } from '../services/employeeService';
-import { authService } from '../services/authService';
+import { authService, api } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 
 const { Option } = Select;
 const { TextArea } = Input;
-const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
 
 const LeaveManagement = () => {
-  const { hasPermission } = useAuth();
+  const { hasPermission, user } = useAuth();
+  const canManage = hasPermission('leave.manage');
   const canExport = hasPermission(['export.pdf', 'leave.view', 'leave.self']);
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [leaveTypes, setLeaveTypes] = useState([]);
@@ -21,29 +24,28 @@ const LeaveManagement = () => {
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
-  const token = localStorage.getItem('token');
-  const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
+  const [updatingId, setUpdatingId] = useState(null);
 
   const fetchLeaveRequests = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get('/api/leave', { headers });
+      const res = await api.get('/leave');
       if (res.data.success) setLeaveRequests(res.data.data);
     } catch (error) {
       message.error('Failed to load leave requests');
     } finally {
       setLoading(false);
     }
-  }, [headers]);
+  }, []);
 
   const fetchLeaveTypes = useCallback(async () => {
     try {
-      const res = await axios.get('/api/leave/types', { headers });
+      const res = await api.get('/leave/types');
       if (res.data.success) setLeaveTypes(res.data.data);
     } catch (error) {
       message.error('Failed to load leave types');
     }
-  }, [headers]);
+  }, []);
 
   const fetchEmployees = useCallback(async () => {
     try {
@@ -57,45 +59,65 @@ const LeaveManagement = () => {
   useEffect(() => {
     fetchLeaveRequests();
     fetchLeaveTypes();
-    fetchEmployees();
-  }, [fetchLeaveRequests, fetchLeaveTypes, fetchEmployees]);
+    if (canManage) fetchEmployees();
+  }, [fetchLeaveRequests, fetchLeaveTypes, fetchEmployees, canManage]);
 
   const handleAddLeaveRequest = async (values) => {
     try {
       const dateRange = values.date_range;
       const days = dateRange[1].diff(dateRange[0], 'day') + 1;
-      
-      const res = await axios.post('/api/leave', {
-        ...values,
+      const payload = {
+        leave_type_id: values.leave_type_id,
         date_start: dateRange[0].format('YYYY-MM-DD'),
         date_end: dateRange[1].format('YYYY-MM-DD'),
-        days: days,
-      }, { headers });
-      
+        days,
+        reason: values.reason,
+      };
+      if (values.employee_id) payload.employee_id = values.employee_id;
+
+      const res = await api.post('/leave', payload);
       if (res.data.success) {
-        message.success('Leave request created successfully');
+        message.success('Leave request submitted');
         setModalVisible(false);
         form.resetFields();
         fetchLeaveRequests();
       }
     } catch (error) {
-      message.error('Failed to create leave request');
+      message.error(error.response?.data?.message || 'Failed to create leave request');
+    }
+  };
+
+  const updateStatus = async (id, status) => {
+    setUpdatingId(id);
+    try {
+      const res = await api.put(`/leave/${id}/status`, { status });
+      if (res.data.success) {
+        message.success(res.data.message || `Leave ${status.toLowerCase()}`);
+        fetchLeaveRequests();
+      }
+    } catch (error) {
+      message.error(error.response?.data?.message || 'Update failed');
+    } finally {
+      setUpdatingId(null);
     }
   };
 
   const getStatusColor = (status) => {
     const colors = {
-      'Pending': 'processing',
-      'Approved': 'success',
-      'Rejected': 'error',
-      'Cancelled': 'default'
+      Pending: 'processing',
+      Approved: 'success',
+      Rejected: 'error',
+      Cancelled: 'default',
     };
     return colors[status] || 'default';
   };
 
-  const pendingRequests = leaveRequests.filter(lr => lr.status === 'Pending');
-  const approvedThisMonth = leaveRequests.filter(lr => 
-    lr.status === 'Approved' && dayjs(lr.date_start).isSame(dayjs(), 'month')
+  const pendingRequests = useMemo(
+    () => leaveRequests.filter((lr) => lr.status === 'Pending'),
+    [leaveRequests]
+  );
+  const approvedThisMonth = leaveRequests.filter(
+    (lr) => lr.status === 'Approved' && dayjs(lr.date_start).isSame(dayjs(), 'month')
   ).length;
 
   const columns = [
@@ -108,18 +130,20 @@ const LeaveManagement = () => {
       title: 'Leave Type',
       dataIndex: 'leave_type_name',
       key: 'leave_type',
+      responsive: ['sm'],
     },
     {
-      title: 'Start Date',
+      title: 'Start',
       dataIndex: 'date_start',
       key: 'date_start',
       render: (date) => dayjs(date).format('MMM DD, YYYY'),
       sorter: (a, b) => dayjs(a.date_start).unix() - dayjs(b.date_start).unix(),
     },
     {
-      title: 'End Date',
+      title: 'End',
       dataIndex: 'date_end',
       key: 'date_end',
+      responsive: ['md'],
       render: (date) => dayjs(date).format('MMM DD, YYYY'),
     },
     {
@@ -145,46 +169,75 @@ const LeaveManagement = () => {
       dataIndex: 'reason',
       key: 'reason',
       ellipsis: true,
+      responsive: ['lg'],
     },
     {
       title: 'Actions',
       key: 'actions',
+      fixed: 'right',
       render: (_, record) => (
-        <Space>
-          {record.status === 'Pending' && (
+        <Space wrap size="small">
+          {record.status === 'Pending' && canManage && (
             <>
-              <Button size="small" type="primary" onClick={() => message.info('Approve functionality coming soon')}>
-                Approve
-              </Button>
-              <Button size="small" danger onClick={() => message.info('Reject functionality coming soon')}>
-                Reject
-              </Button>
+              <Popconfirm title="Approve this leave?" onConfirm={() => updateStatus(record.id, 'Approved')}>
+                <Button
+                  size="small"
+                  type="primary"
+                  icon={<CheckCircleOutlined />}
+                  loading={updatingId === record.id}
+                >
+                  Approve
+                </Button>
+              </Popconfirm>
+              <Popconfirm title="Reject this leave?" onConfirm={() => updateStatus(record.id, 'Rejected')}>
+                <Button
+                  size="small"
+                  danger
+                  icon={<CloseCircleOutlined />}
+                  loading={updatingId === record.id}
+                >
+                  Reject
+                </Button>
+              </Popconfirm>
             </>
+          )}
+          {record.status === 'Pending' && !canManage && user?.employee_id === record.employee_id && (
+            <Popconfirm title="Cancel this request?" onConfirm={() => updateStatus(record.id, 'Cancelled')}>
+              <Button size="small">Cancel</Button>
+            </Popconfirm>
           )}
         </Space>
       ),
     },
   ];
 
+  const tableProps = {
+    columns,
+    loading,
+    rowKey: 'id',
+    pagination: { pageSize: 10, responsive: true },
+    scroll: { x: true },
+  };
+
   return (
-    <div>
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} lg={6}>
+    <div className="page-leave">
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={12} sm={12} lg={6}>
           <Card>
-            <Statistic title="Pending Requests" value={pendingRequests.length} prefix={<CalendarOutlined />} />
+            <Statistic title="Pending" value={pendingRequests.length} prefix={<CalendarOutlined />} />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={12} sm={12} lg={6}>
           <Card>
-            <Statistic title="Approved This Month" value={approvedThisMonth} prefix={<CheckCircleOutlined />} />
+            <Statistic title="Approved (month)" value={approvedThisMonth} prefix={<CheckCircleOutlined />} />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={12} sm={12} lg={6}>
           <Card>
             <Statistic title="Total Requests" value={leaveRequests.length} />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={12} sm={12} lg={6}>
           <Card>
             <Statistic title="Leave Types" value={leaveTypes.length} />
           </Card>
@@ -192,14 +245,14 @@ const LeaveManagement = () => {
       </Row>
 
       <Card
-        title={
+        title={(
           <span>
             <CalendarOutlined style={{ marginRight: 8 }} />
             Leave Management
           </span>
-        }
-        extra={
-          <Space>
+        )}
+        extra={(
+          <Space wrap>
             {canExport && (
               <Button
                 icon={<FilePdfOutlined />}
@@ -209,54 +262,63 @@ const LeaveManagement = () => {
               </Button>
             )}
             <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>
-              New Leave Request
+              New Request
             </Button>
           </Space>
-        }
+        )}
       >
-        <Tabs defaultActiveKey="all">
-          <TabPane tab="All Requests" key="all">
-            <Table
-              columns={columns}
-              dataSource={leaveRequests}
-              loading={loading}
-              rowKey="id"
-              pagination={{ pageSize: 10 }}
-            />
-          </TabPane>
-          <TabPane tab="Pending" key="pending">
-            <Table
-              columns={columns}
-              dataSource={pendingRequests}
-              loading={loading}
-              rowKey="id"
-              pagination={{ pageSize: 10 }}
-            />
-          </TabPane>
-          <TabPane tab="Approved" key="approved">
-            <Table
-              columns={columns}
-              dataSource={leaveRequests.filter(lr => lr.status === 'Approved')}
-              loading={loading}
-              rowKey="id"
-              pagination={{ pageSize: 10 }}
-            />
-          </TabPane>
-          <TabPane tab="Leave Types" key="types">
-            <Table
-              columns={[
-                { title: 'Name', dataIndex: 'name', key: 'name' },
-                { title: 'Default Quota', dataIndex: 'default_quota', key: 'quota', render: (val) => `${val} days` },
-                { title: 'Status', dataIndex: 'status', key: 'status', render: (status) => 
-                  <Tag color={status === 'Active' ? 'success' : 'default'}>{status}</Tag>
-                },
-              ]}
-              dataSource={leaveTypes}
-              rowKey="id"
-              pagination={false}
-            />
-          </TabPane>
-        </Tabs>
+        <Tabs
+          items={[
+            {
+              key: 'all',
+              label: 'All',
+              children: <Table {...tableProps} dataSource={leaveRequests} />,
+            },
+            {
+              key: 'pending',
+              label: `Pending (${pendingRequests.length})`,
+              children: <Table {...tableProps} dataSource={pendingRequests} />,
+            },
+            {
+              key: 'approved',
+              label: 'Approved',
+              children: (
+                <Table
+                  {...tableProps}
+                  dataSource={leaveRequests.filter((lr) => lr.status === 'Approved')}
+                />
+              ),
+            },
+            {
+              key: 'types',
+              label: 'Leave Types',
+              children: (
+                <Table
+                  columns={[
+                    { title: 'Name', dataIndex: 'name', key: 'name' },
+                    {
+                      title: 'Default Quota',
+                      dataIndex: 'default_quota',
+                      key: 'quota',
+                      render: (val) => `${val ?? '—'} days`,
+                    },
+                    {
+                      title: 'Status',
+                      dataIndex: 'status',
+                      key: 'status',
+                      render: (status) => (
+                        <Tag color={status === 'Active' ? 'success' : 'default'}>{status}</Tag>
+                      ),
+                    },
+                  ]}
+                  dataSource={leaveTypes}
+                  rowKey="id"
+                  pagination={false}
+                />
+              ),
+            },
+          ]}
+        />
       </Card>
 
       <Modal
@@ -267,20 +329,23 @@ const LeaveManagement = () => {
           form.resetFields();
         }}
         onOk={() => form.submit()}
+        destroyOnClose
       >
         <Form form={form} onFinish={handleAddLeaveRequest} layout="vertical">
-          <Form.Item name="employee_id" label="Employee" rules={[{ required: true }]}>
-            <Select placeholder="Select employee">
-              {employees.map(emp => (
-                <Option key={emp.id} value={emp.id}>
-                  {emp.first_name} {emp.last_name} ({emp.employee_id})
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+          {canManage && (
+            <Form.Item name="employee_id" label="Employee" rules={[{ required: true }]}>
+              <Select placeholder="Select employee" showSearch optionFilterProp="children">
+                {employees.map((emp) => (
+                  <Option key={emp.id} value={emp.id}>
+                    {emp.first_name} {emp.last_name} ({emp.employee_id})
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          )}
           <Form.Item name="leave_type_id" label="Leave Type" rules={[{ required: true }]}>
             <Select placeholder="Select leave type">
-              {leaveTypes.filter(lt => lt.status === 'Active').map(type => (
+              {leaveTypes.filter((lt) => lt.status === 'Active').map((type) => (
                 <Option key={type.id} value={type.id}>{type.name}</Option>
               ))}
             </Select>
@@ -298,4 +363,3 @@ const LeaveManagement = () => {
 };
 
 export default LeaveManagement;
-

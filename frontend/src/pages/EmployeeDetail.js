@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Descriptions, Button, Spin, message } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
@@ -10,11 +10,7 @@ const EmployeeDetail = () => {
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadEmployee();
-  }, [id]);
-
-  const loadEmployee = async () => {
+  const loadEmployee = useCallback(async () => {
     try {
       const response = await employeeService.getById(id);
       setEmployee(response.data);
@@ -24,7 +20,11 @@ const EmployeeDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]);
+
+  useEffect(() => {
+    loadEmployee();
+  }, [loadEmployee]);
 
   if (loading) {
     return <Spin size="large" style={{ display: 'block', textAlign: 'center', marginTop: 50 }} />;

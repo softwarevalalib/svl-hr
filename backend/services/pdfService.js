@@ -173,6 +173,14 @@ function leaveSummaryPdf(res, leaves) {
     });
 }
 
+function streamGenericReport(res, filename, title, columns, rows) {
+    streamPdf(res, filename, (doc) => {
+        header(doc, title);
+        drawTable(doc, columns, rows || []);
+        footer(doc);
+    });
+}
+
 module.exports = {
     payslipPdf,
     expenseReceiptPdf,
@@ -181,4 +189,6 @@ module.exports = {
     attendanceReportPdf,
     employeeListPdf,
     leaveSummaryPdf,
+    streamGenericReport,
+    streamPdf,
 };

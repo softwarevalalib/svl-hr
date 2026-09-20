@@ -18,6 +18,7 @@ import Procurement from './pages/Procurement';
 import Users from './pages/Users';
 import Roles from './pages/Roles';
 import WorkSchedule from './pages/WorkSchedule';
+import Documents from './pages/Documents';
 import AppLayout from './components/common/AppLayout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import PermissionRoute from './components/common/PermissionRoute';
@@ -43,6 +44,7 @@ function App() {
           <Route path="employees/:id" element={<PermissionRoute permission={['employees.view', 'employees.manage']}><EmployeeDetail /></PermissionRoute>} />
           <Route path="attendance" element={<PermissionRoute permission={['attendance.view', 'attendance.manage', 'attendance.self']}><Attendance /></PermissionRoute>} />
           <Route path="leave" element={<PermissionRoute permission={['leave.view', 'leave.manage', 'leave.self']}><LeaveManagement /></PermissionRoute>} />
+          <Route path="documents" element={<PermissionRoute permission={['documents.view', 'documents.manage', 'employees.view']}><Documents /></PermissionRoute>} />
           <Route path="training" element={<PermissionRoute permission={['training.view', 'training.manage']}><Training /></PermissionRoute>} />
           <Route path="projects" element={<PermissionRoute permission={['projects.view', 'projects.manage']}><Projects /></PermissionRoute>} />
           <Route path="expenses" element={<PermissionRoute permission={['expenses.view', 'expenses.manage', 'expenses.self']}><Expenses /></PermissionRoute>} />

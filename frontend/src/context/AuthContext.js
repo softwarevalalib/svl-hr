@@ -46,19 +46,19 @@ export const AuthProvider = ({ children }) => {
     return null;
   }, [applyPayload]);
 
-  const login = async (username, password) => {
+  const login = useCallback(async (username, password) => {
     const data = await authService.login(username, password);
     applyPayload(data);
     setLoading(false);
     return data;
-  };
+  }, [applyPayload]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     authService.logout();
     setUser(null);
     setRoles([]);
     setPermissions([]);
-  };
+  }, []);
 
   const hasPermission = useCallback(
     (code) => {
@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }) => {
       isAuthenticated: !!localStorage.getItem('token') && !!user,
       primaryRole: roles[0]?.name || user?.user_level || 'User',
     }),
-    [user, roles, permissions, loading, hasPermission, hasAllPermissions, refreshMe]
+    [user, roles, permissions, loading, login, logout, hasPermission, hasAllPermissions, refreshMe]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

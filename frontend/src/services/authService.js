@@ -57,6 +57,24 @@ export const authService = {
     link.remove();
     window.URL.revokeObjectURL(url);
   },
+
+  downloadFile: async (path, filename) => {
+    const response = await api.get(path, { responseType: 'blob' });
+    const disposition = response.headers['content-disposition'];
+    let name = filename || 'download';
+    if (disposition) {
+      const match = /filename="?([^"]+)"?/i.exec(disposition);
+      if (match) name = match[1];
+    }
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', name);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
 };
 
 export { api };

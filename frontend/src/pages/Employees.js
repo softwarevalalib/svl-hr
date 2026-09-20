@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Table, Button, Space, Input, Select, Modal, Form, message, Tag, Upload } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, FilePdfOutlined, UploadOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -21,17 +21,13 @@ const Employees = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    loadEmployees();
-  }, [searchTerm, statusFilter]);
-
-  const loadEmployees = async () => {
+  const loadEmployees = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
       if (searchTerm) params.search = searchTerm;
       if (statusFilter) params.status = statusFilter;
-      
+
       const response = await employeeService.getAll(params);
       setEmployees(response.data || []);
     } catch (error) {
@@ -39,7 +35,11 @@ const Employees = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, statusFilter]);
+
+  useEffect(() => {
+    loadEmployees();
+  }, [loadEmployees]);
 
   const handleAdd = () => {
     setEditingEmployee(null);

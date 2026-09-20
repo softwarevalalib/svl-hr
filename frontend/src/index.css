@@ -314,6 +314,59 @@ code {
   box-shadow: 0 1px 3px rgba(15, 28, 46, 0.06);
 }
 
+.app-notif-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: #1f2a37;
+  display: inline-flex;
+  align-items: center;
+}
+
+.app-notif-btn:hover {
+  background: #eef2f6;
+}
+
+.notif-dropdown .ant-dropdown-menu {
+  min-width: 300px;
+  max-width: min(360px, 92vw);
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.notif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #1f2a37;
+}
+
+.notif-item {
+  max-width: 300px;
+  white-space: normal;
+  padding: 2px 0;
+}
+
+.notif-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: #1f2a37;
+}
+
+.notif-msg {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.notif-unread .notif-title {
+  color: #1f6f8b;
+}
+
 .attendance-clock-card {
   border: 1px solid #d9e6ec !important;
   background: linear-gradient(135deg, #f7fbfd 0%, #eef5f7 100%) !important;
@@ -324,13 +377,15 @@ code {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  padding: 16px;
   background:
     radial-gradient(circle at top left, rgba(31, 111, 139, 0.18), transparent 40%),
     linear-gradient(160deg, #0f1c2e 0%, #1a3348 55%, #24566b 100%);
 }
 
 .login-card {
-  width: 400px;
+  width: 100%;
+  max-width: 400px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
   border-radius: 12px;
 }
@@ -345,12 +400,97 @@ code {
 
 @media (max-width: 768px) {
   .app-content {
-    margin: 12px 8px;
-    padding: 16px;
+    margin: 8px;
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .app-header {
+    padding: 0 12px !important;
+    height: 56px;
   }
 
   .app-user-name {
     display: none;
+  }
+
+  .app-role-chip {
+    display: none !important;
+  }
+
+  .app-header-right {
+    gap: 6px;
+  }
+
+  /* Stack card extras and avoid horizontal overflow */
+  .ant-card-head {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ant-card-extra {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
+  .ant-card-extra .ant-space {
+    flex-wrap: wrap;
+  }
+
+  .ant-modal {
+    max-width: calc(100vw - 24px) !important;
+    margin: 12px auto !important;
+  }
+
+  .ant-picker,
+  .ant-select,
+  .ant-input,
+  .ant-input-number {
+    max-width: 100%;
+  }
+
+  .ant-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .ant-statistic-title {
+    font-size: 12px;
+  }
+
+  .ant-statistic-content {
+    font-size: 20px !important;
+  }
+
+  .ant-tabs-nav {
+    margin-bottom: 12px !important;
+  }
+
+  .login-brand {
+    font-size: 28px;
+  }
+
+  /* Disable hover lift on touch devices */
+  .ant-card:hover {
+    transform: none;
+  }
+
+  .ant-btn:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-content {
+    margin: 6px;
+    padding: 10px;
+  }
+
+  .reports-controls .ant-space {
+    width: 100%;
+  }
+
+  .reports-controls .ant-btn {
+    flex: 1;
   }
 }
 

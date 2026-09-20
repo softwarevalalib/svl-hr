@@ -10,7 +10,8 @@ const { runAlterMigrations } = require('./alterAttendanceColumns');
 const migrationFiles = [
     'add_advanced_features.sql',
     'add_payroll_finance_procurement.sql',
-    'add_rbac_attendance_settings.sql'
+    'add_rbac_attendance_settings.sql',
+    'add_documents_notifications.sql'
 ];
 
 if (!fs.existsSync(dbPath)) {

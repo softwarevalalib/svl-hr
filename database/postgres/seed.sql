@@ -40,6 +40,8 @@ INSERT INTO "Permissions" (code, name, module, description) VALUES
 ('performance.manage', 'Manage Performance', 'performance', 'Manage performance'),
 ('reports.view', 'View Reports', 'reports', 'View reports'),
 ('analytics.view', 'View Analytics', 'analytics', 'View analytics'),
+('documents.view', 'View Documents', 'documents', 'View employee documents'),
+('documents.manage', 'Manage Documents', 'documents', 'Upload and manage documents'),
 ('export.pdf', 'Export PDF', 'export', 'Export documents as PDF'),
 ('import.data', 'Import Data', 'export', 'Import CSV/data')
 ON CONFLICT (code) DO NOTHING;
@@ -53,7 +55,7 @@ SELECT 2, id FROM "Permissions" WHERE code IN (
   'dashboard.view','employees.view','attendance.view','attendance.manage','attendance.self',
   'leave.view','leave.manage','leave.self','training.view','projects.view','projects.manage',
   'expenses.view','expenses.self','performance.view','reports.view','analytics.view',
-  'export.pdf','payroll.view'
+  'export.pdf','payroll.view','documents.view'
 ) ON CONFLICT DO NOTHING;
 
 INSERT INTO "RolePermissions" (role_id, permission_id)
@@ -61,7 +63,8 @@ SELECT 3, id FROM "Permissions" WHERE code IN (
   'dashboard.view','employees.view','employees.manage','attendance.view','attendance.manage','attendance.self',
   'leave.view','leave.manage','leave.self','training.view','training.manage','projects.view',
   'expenses.view','expenses.manage','performance.view','performance.manage','reports.view',
-  'analytics.view','export.pdf','import.data','payroll.view','users.manage'
+  'analytics.view','export.pdf','import.data','payroll.view','users.manage',
+  'documents.view','documents.manage'
 ) ON CONFLICT DO NOTHING;
 
 INSERT INTO "RolePermissions" (role_id, permission_id)
@@ -74,7 +77,7 @@ SELECT 4, id FROM "Permissions" WHERE code IN (
 INSERT INTO "RolePermissions" (role_id, permission_id)
 SELECT 5, id FROM "Permissions" WHERE code IN (
   'dashboard.view','attendance.self','leave.self','expenses.self','training.view',
-  'projects.view','export.pdf'
+  'projects.view','export.pdf','documents.view'
 ) ON CONFLICT DO NOTHING;
 
 INSERT INTO "WorkSchedules" (day_of_week, is_workday, sign_in_time, sign_out_time, grace_minutes) VALUES

@@ -25,9 +25,11 @@ async function main() {
 
   const schemaPath = path.join(__dirname, '../../database/postgres/schema.sql');
   const seedPath = path.join(__dirname, '../../database/postgres/seed.sql');
+  const docsPath = path.join(__dirname, '../../database/postgres/documents_notifications.sql');
 
   const schema = fs.readFileSync(schemaPath, 'utf8');
   const seed = fs.readFileSync(seedPath, 'utf8');
+  const docs = fs.existsSync(docsPath) ? fs.readFileSync(docsPath, 'utf8') : '';
 
   console.log('Applying schema...');
   await client.query(schema);
@@ -36,6 +38,12 @@ async function main() {
   console.log('Applying seed...');
   await client.query(seed);
   console.log('Seed applied');
+
+  if (docs) {
+    console.log('Applying documents/notifications...');
+    await client.query(docs);
+    console.log('Documents/notifications applied');
+  }
 
   const users = await client.query('SELECT id, username, user_level FROM "Users"');
   console.log('Users:', users.rows);

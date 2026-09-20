@@ -2,6 +2,85 @@ const { Pool } = require('pg');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
+/** Neon schema uses quoted PascalCase table names; SQLite-style SQL leaves them unquoted. */
+const PG_TABLES = [
+  'AccountTypes',
+  'Attendance',
+  'BidItems',
+  'BidOpportunities',
+  'Bids',
+  'BudgetCategories',
+  'Budgets',
+  'Certifications',
+  'Courses',
+  'Departments',
+  'Documents',
+  'Educations',
+  'EmergencyContacts',
+  'EmployeeCertifications',
+  'EmployeeDependents',
+  'EmployeeEducations',
+  'EmployeeExpenses',
+  'EmployeeImmigrations',
+  'EmployeeLanguages',
+  'EmployeeOvertime',
+  'EmployeeProjects',
+  'EmployeeSalaries',
+  'EmployeeSkills',
+  'EmployeeTrainingSessions',
+  'Employees',
+  'EmploymentStatus',
+  'ExpenseCategories',
+  'ExpensePaymentMethods',
+  'FinancialAccounts',
+  'FinancialTransactions',
+  'ImmigrationDocuments',
+  'ItemCategories',
+  'Items',
+  'JobTitles',
+  'Languages',
+  'LeaveRequests',
+  'LeaveTypes',
+  'Notifications',
+  'OvertimeCategories',
+  'Payroll',
+  'PayrollData',
+  'Payslips',
+  'PerformanceReviews',
+  'Permissions',
+  'Projects',
+  'PurchaseOrderItems',
+  'PurchaseOrders',
+  'PurchaseRequestItems',
+  'PurchaseRequests',
+  'RolePermissions',
+  'Roles',
+  'SalaryComponentTypes',
+  'SalaryComponents',
+  'Settings',
+  'Skills',
+  'TimeSheets',
+  'TrainingSessions',
+  'TransactionTypes',
+  'UserRoles',
+  'Users',
+  'Vendors',
+  'WorkSchedules',
+].sort((a, b) => b.length - a.length);
+
+const PG_TABLE_RE = new RegExp(`\\b(${PG_TABLES.join('|')})\\b`, 'g');
+
+function quotePgTables(sql) {
+  // Preserve already-quoted identifiers
+  const parts = sql.split(/("(?:[^"]*)")/g);
+  return parts
+    .map((part, i) => {
+      if (i % 2 === 1) return part;
+      return part.replace(PG_TABLE_RE, '"$1"');
+    })
+    .join('');
+}
+
 function convertPlaceholders(sql) {
   let i = 0;
   return sql.replace(/\?/g, () => `$${++i}`);
@@ -15,6 +94,7 @@ function normalizeSql(sql) {
     out = out.replace(/;?\s*$/, ' ON CONFLICT DO NOTHING');
   }
   out = out.replace(/datetime\('now'\)/gi, 'CURRENT_TIMESTAMP');
+  out = quotePgTables(out);
   return out;
 }
 
@@ -109,4 +189,4 @@ function createDatabase() {
   return createSqliteDb(dbPath);
 }
 
-module.exports = { createDatabase, createPgDb, createSqliteDb };
+module.exports = { createDatabase, createPgDb, createSqliteDb, quotePgTables };

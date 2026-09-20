@@ -10,11 +10,10 @@ router.get('/', (req, res) => {
         SELECT e.*, 
                s.first_name || ' ' || s.last_name as supervisor_name,
                d.name as department_name,
-               COUNT(a.id) as attendance_count
+               (SELECT COUNT(*) FROM Attendance a WHERE a.employee_id = e.id) as attendance_count
         FROM Employees e
         LEFT JOIN Employees s ON e.supervisor_id = s.id
         LEFT JOIN Departments d ON e.department = d.name
-        LEFT JOIN Attendance a ON e.id = a.employee_id
     `;
     
     const conditions = [];
@@ -40,7 +39,7 @@ router.get('/', (req, res) => {
         query += ' WHERE ' + conditions.join(' AND ');
     }
     
-    query += ' GROUP BY e.id ORDER BY e.created_at DESC';
+    query += ' ORDER BY e.created_at DESC';
     
     db.all(query, params, (err, employees) => {
         if (err) {
