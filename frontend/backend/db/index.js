@@ -198,6 +198,8 @@ function normalizeDatabaseUrl(raw) {
   let url = String(raw).trim().replace(/^["']+|["']+$/g, '');
   // Common paste mistakes
   url = url.replace(/^DATABASE_URL=/i, '');
+  // channel_binding can break some serverless drivers
+  url = url.replace(/([?&])channel_binding=[^&]*&?/i, '$1').replace(/[?&]$/, '');
   return url;
 }
 
@@ -206,6 +208,13 @@ function createDatabase() {
   if (databaseUrl && /^postgres(ql)?:\/\//i.test(databaseUrl)) {
     console.log('✅ Using Neon/PostgreSQL (DATABASE_URL)');
     return createPgDb(databaseUrl);
+  }
+
+  const onVercel = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+  if (onVercel) {
+    throw new Error(
+      'DATABASE_URL is missing or invalid on Vercel. Set a Neon pooled postgres URL in Project Settings → Environment Variables (e.g. postgresql://...@...-pooler.../neondb?sslmode=require).'
+    );
   }
 
   const dbPath = process.env.SQLITE_PATH || path.join(__dirname, '../../../database/hr_system.db');
