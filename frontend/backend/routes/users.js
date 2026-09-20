@@ -7,15 +7,17 @@ router.use(authenticate);
 
 router.get('/', requirePermission('users.manage'), (req, res) => {
     const db = req.app.get('db');
+    const pg = db.driver === 'postgres';
+    const roleAgg = pg
+        ? `(SELECT STRING_AGG(r.name, ', ') FROM UserRoles ur JOIN Roles r ON r.id = ur.role_id WHERE ur.user_id = u.id)`
+        : `(SELECT GROUP_CONCAT(r.name, ', ') FROM UserRoles ur JOIN Roles r ON r.id = ur.role_id WHERE ur.user_id = u.id)`;
+
     db.all(
         `SELECT u.id, u.username, u.email, u.user_level, u.employee_id, u.is_active, u.created_at,
                 e.first_name || ' ' || e.last_name as employee_name,
-                GROUP_CONCAT(r.name, ', ') as roles
+                ${roleAgg} as roles
          FROM Users u
          LEFT JOIN Employees e ON u.employee_id = e.id
-         LEFT JOIN UserRoles ur ON ur.user_id = u.id
-         LEFT JOIN Roles r ON r.id = ur.role_id
-         GROUP BY u.id
          ORDER BY u.created_at DESC`,
         (err, users) => {
             if (err) return res.status(500).json({ success: false, message: err.message });
