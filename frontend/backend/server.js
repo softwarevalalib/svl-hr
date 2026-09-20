@@ -28,18 +28,37 @@ const analyticsRoutes = require('./routes/analytics');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const allowedOrigins = (process.env.CORS_ORIGINS || '')
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
+const normalizeOrigin = (value) => String(value || '').trim().replace(/\/$/, '');
+const allowedOrigins = new Set(
+  [
+    ...(process.env.CORS_ORIGINS || '').split(','),
+    'https://hrsystem-ochre.vercel.app',
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '',
+    process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : '',
+  ]
+    .map(normalizeOrigin)
+    .filter(Boolean)
+);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      // Same-origin / curl / server-to-server requests have no Origin header.
+      if (!origin) return callback(null, true);
+      const normalized = normalizeOrigin(origin);
+      if (
+        allowedOrigins.size === 0 ||
+        allowedOrigins.has('*') ||
+        allowedOrigins.has(normalized) ||
+        // Allow this project's Vercel deployments (prod + previews).
+        (process.env.VERCEL && /\.vercel\.app$/i.test(normalized))
+      ) {
         return callback(null, true);
       }
-      return callback(new Error('Not allowed by CORS'));
+      // Reject without throwing — throwing becomes a 500 Internal Server Error.
+      return callback(null, false);
     },
     credentials: true,
   })
